@@ -1,0 +1,13 @@
+name = "aoc2022"
+uuid = "21c99fe1-306a-46e3-877f-858801184773"
+authors = ["Daniel González <daniel.gonzalez@ienai.space> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
