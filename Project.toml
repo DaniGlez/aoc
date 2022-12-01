@@ -3,6 +3,11 @@ uuid = "21c99fe1-306a-46e3-877f-858801184773"
 authors = ["Daniel González <daniel.gonzalez@ienai.space> and contributors"]
 version = "0.1.0"
 
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+Pipe = "b98c9c47-44ae-5843-9183-064241ee97a0"
+
 [compat]
 julia = "1"
 
