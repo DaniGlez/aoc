@@ -23,16 +23,16 @@ score(r::Round) = score_shape(r) + score_outcome(r)
 r = Round(PAPER, SCISSORS)
 @assert score(r) == 9
 
+const d_enemy = Dict('A' => ROCK, 'B' => PAPER, 'C' => SCISSORS)
+const d_player = Dict('X' => ROCK, 'Y' => PAPER, 'Z' => SCISSORS)
+line_to_round(line) = Round(d_enemy[line[1]], d_player[line[3]])
+
 sample = """A Y
 B X
 C Z"""
 
 sample_rounds = split(sample, '\n') .|> line_to_round
 @assert score.(sample_rounds) == [8, 1, 6]
-
-const d_enemy = Dict('A' => ROCK, 'B' => PAPER, 'C' => SCISSORS)
-const d_player = Dict('X' => ROCK, 'Y' => PAPER, 'Z' => SCISSORS)
-line_to_round(line) = Round(d_enemy[line[1]], d_player[line[3]])
 
 rounds = (@pipe readchomp("src/inputs/day2.txt") |> split(_, '\n')) .|> line_to_round
 sum(score.(rounds))
