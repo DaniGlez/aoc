@@ -1,0 +1,3 @@
+using Pipe
+
+readchomp("src/inputs/day3.txt") |> ...
