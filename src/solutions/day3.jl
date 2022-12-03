@@ -15,10 +15,8 @@ end
 split(readchomp("src/inputs/day3.txt"), "\n") .|> process_line |> sum
 
 function get_arr(line)
-    arr = @MArray zeros(Int32, 52)
-    n = length(line)
-    for i ∈ 1:n
-        c = line[i]
+    arr = @MArray zeros(Int64, 52)
+    for c ∈ collect(line)
         arr[priority(c)] = 1
     end
     return SArray(arr)
@@ -26,11 +24,7 @@ end
 
 function process_group(bags...)
     prios = bags .|> get_arr
-    for i ∈ 1:52
-        if sum(arr[i] for arr ∈ prios) == length(bags)
-            return i
-        end
-    end
+    findfirst(s -> (s == 3), sum(prios))
 end
 
 lines = split(readchomp("src/inputs/day3.txt"), "\n")
