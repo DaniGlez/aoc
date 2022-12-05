@@ -10,8 +10,7 @@ function init_stacks()
     stacks = [Stack{Char}() for _ ∈ 1:n_stacks]
     for level ∈ 1:initial_levels
         level_line = initial_lines[initial_levels+1-level]
-        for stack_id ∈ 1:n_stacks
-            c = level_line[-2+4stack_id]
+        for (stack_id, c) ∈ enumerate(level_line[2:4:end])
             if c != ' '
                 push!(stacks[stack_id], c)
             end
