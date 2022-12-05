@@ -1,8 +1,8 @@
 using Pipe, DataStructures
 
 # inputs
-initial_levels = 8
-n_stacks = 9
+const initial_levels = 8
+const n_stacks = 9
 initial_chunk, moves_chunk = split(readchomp("src/inputs/day5.txt"), " 1   2   3   4   5   6   7   8   9 ")
 initial_lines = split(initial_chunk, "\n")
 
