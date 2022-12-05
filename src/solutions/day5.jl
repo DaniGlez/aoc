@@ -55,3 +55,8 @@ end
 
 stacks .|> first |> join |> println
 
+# alternative parsing with regex
+function proc_move(line)
+    re = r"move (\d+) from (\d) to (\d)"
+    parse.(Int64, match(re, line).captures)
+end
