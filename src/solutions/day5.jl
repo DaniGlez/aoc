@@ -1,10 +1,10 @@
 using Pipe, DataStructures
 
 # inputs
-const initial_levels = 8
-const n_stacks = 9
 initial_chunk, moves_chunk = split(readchomp("src/inputs/day5.txt"), " 1   2   3   4   5   6   7   8   9 ")
-initial_lines = split(initial_chunk, "\n")
+initial_lines = @pipe split(initial_chunk, "\n") |> filter(!isempty, _)
+const initial_levels = length(initial_lines)
+const n_stacks = count('[', initial_lines[end])
 
 function init_stacks()
     stacks = [Stack{Char}() for _ ∈ 1:n_stacks]
