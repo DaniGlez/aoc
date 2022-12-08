@@ -31,9 +31,8 @@ function proc_vmask!(trees, vmask, dir, dim, vbase)
             if dir == -1
                 k = S[dim] + 1 - i
             end
-            idx = @MArray [j, j]
-            idx[dim] = k
-            idx = Tuple(idx)
+            idx = (j, j)
+            idx = @set idx[dim] = k
             height = trees[idx...]
             if height > v
                 vmask[idx...] = true
