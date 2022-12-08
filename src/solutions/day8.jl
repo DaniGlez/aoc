@@ -1,4 +1,4 @@
-using Pipe, StaticArrays
+using Pipe, StaticArrays, Accessors
 
 # parse input
 pline(line) = @pipe collect(line) .|> parse(Int64, _)
@@ -64,15 +64,16 @@ function proc_vdist!(trees, view_dist, dirdim, ::Val{hₘₐₓ}) where {hₘₐ
     dir = -1 + 2 * (dirdim % 2)
     other_dim = 3 - dim
     S = size(trees)
+    last_seen = @MArray ones(Int64, hₘₐₓ + 1)
     for j ∈ 1:S[other_dim]
-        last_seen = @MArray ones(Int64, hₘₐₓ + 1)
+        fill!(last_seen, 1)
         for i ∈ 1:S[dim]
             k = i
             if dir == -1
                 k = S[dim] + 1 - i
             end
-            idx = @MArray [j, j]
-            idx[dim] = k
+            idx = (j, j)
+            idx = @set idx[dim] = k
             height = trees[idx...]
             view_dist[(idx..., dirdim)...] = (i - last_seen[height+1])
             last_seen[1:height+1] .= i
