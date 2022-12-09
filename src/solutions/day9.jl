@@ -24,22 +24,17 @@ L 5
 R 2"""
 example_moves() = split(EXAMPLE, '\n') .|> pline
 
-function pull_segment(leading, trailing)
-    Δ = leading - trailing
-    if maximum(abs.(Δ)) > 1
-        Δ = clamp.(Δ, -1, 1)
-    else
-        Δ = SA[0, 0]
-    end
-    trailing + Δ
-end
+# common
+l∞(x) = maximum(abs.(x))
+clamp_step(Δ) = l∞(Δ) > 1 ? clamp.(Δ, -1, 1) : SA[0, 0]
+pull_segment(leading, trailing) = trailing + clamp_step(leading - trailing)
 
 function solve_p1(moves)
     starting_point = @SArray [0, 0]
     rhead = starting_point
     rtail = starting_point
-    visited = Set{SVector{2,Int64}}()
-    push!(visited, starting_point)
+    visited = Set((starting_point,))
+    println(visited)
     for (dir, n) ∈ moves
         for _ ∈ 1:n
             rhead += dir
