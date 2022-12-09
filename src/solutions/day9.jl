@@ -1,13 +1,17 @@
 using Pipe, Accessors, StaticArrays
 
-# inputs 
-pline(line) = (line[1], parse(Int64, line[3:end]))
-function input_moves()
-    mv = open("src/inputs/day9.txt") do f
+# inputs
+const move_d = Dict(
+    'U' => SA[0, 1],
+    'D' => SA[0, -1],
+    'L' => SA[-1, 0],
+    'R' => SA[1, 0]
+)
+pline(line) = (move_d[line[1]], parse(Int64, line[3:end]))
+input_moves() =
+    open("src/inputs/day9.txt") do f
         return @pipe readlines(f) .|> pline
     end
-    return mv
-end
 
 # example
 const EXAMPLE = """R 4
@@ -30,22 +34,14 @@ function pull_segment(leading, trailing)
     trailing + Δ
 end
 
-const move_d = Dict(
-    'U' => SA[0, 1],
-    'D' => SA[0, -1],
-    'L' => SA[-1, 0],
-    'R' => SA[1, 0]
-)
-
 function solve_p1(moves)
     starting_point = @SArray [0, 0]
     rhead = starting_point
     rtail = starting_point
     visited = Set{SVector{2,Int64}}()
     push!(visited, starting_point)
-    for (move_dir, n) ∈ moves
+    for (dir, n) ∈ moves
         for _ ∈ 1:n
-            dir = move_d[move_dir]
             rhead += dir
             rtail = pull_segment(rhead, rtail)
             @assert maximum(abs.(rhead - rtail)) <= 1
@@ -72,9 +68,8 @@ function solve_p2(moves, ::Val{N}) where {N}
     snek = MVector{N}([starting_point for _ ∈ 1:N])
     visited = Set{SVector{2,Int64}}()
     push!(visited, starting_point)
-    for (move_dir, n) ∈ moves
+    for (dir, n) ∈ moves
         for _ ∈ 1:n
-            dir = move_d[move_dir]
             move_snek!(snek, dir)
             push!(visited, snek[end])
         end
