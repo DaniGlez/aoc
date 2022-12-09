@@ -8,10 +8,7 @@ const move_d = Dict(
     'R' => SA[1, 0]
 )
 pline(line) = (move_d[line[1]], parse(Int64, line[3:end]))
-input_moves() =
-    open("src/inputs/day9.txt") do f
-        return @pipe readlines(f) .|> pline
-    end
+input_moves() = readlines("src/inputs/day9.txt") .|> pline
 
 # example
 const EXAMPLE = """R 4
@@ -38,7 +35,7 @@ function solve_p1(moves)
         for _ ∈ 1:n
             rhead += dir
             rtail = pull_segment(rhead, rtail)
-            @assert maximum(abs.(rhead - rtail)) <= 1
+            @assert l∞(rhead - rtail) <= 1
             push!(visited, rtail)
         end
     end

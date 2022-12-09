@@ -58,12 +58,12 @@ visible_trees(trees) = visibility_mask(trees) |> sum
 input_trees() |> visible_trees |> println
 
 # part 2
-function proc_vdist!(trees, view_dist, dirdim, ::Val{hₘₐₓ}) where {hₘₐₓ}
+function proc_vdist!(trees, view_dist, dirdim, ::Val{hₘₐₓ₁}) where {hₘₐₓ₁}
     dim = (dirdim - 1) ÷ 2 + 1
     dir = -1 + 2 * (dirdim % 2)
     other_dim = 3 - dim
     S = size(trees)
-    last_seen = @MArray ones(Int64, hₘₐₓ + 1)
+    last_seen = MVector{hₘₐₓ₁,Int64}(undef)
     for j ∈ 1:S[other_dim]
         fill!(last_seen, 1)
         for i ∈ 1:S[dim]
@@ -78,6 +78,7 @@ function proc_vdist!(trees, view_dist, dirdim, ::Val{hₘₐₓ}) where {hₘₐ
             last_seen[1:height+1] .= i
         end
     end
+    nothing
 end
 
 function compute_vdist(trees)
@@ -85,7 +86,7 @@ function compute_vdist(trees)
     bounds = (minimum(trees), maximum(trees))
     @assert bounds[1] == 0
     for dirdim ∈ 1:4
-        proc_vdist!(trees, view_distance, dirdim, Val(bounds[2]))
+        proc_vdist!(trees, view_distance, dirdim, Val(bounds[2] + 1))
     end
     view_distance
 end
