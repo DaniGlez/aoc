@@ -42,7 +42,7 @@ function solve_p1(moves)
     length(visited)
 end
 
-input_moves() |> solve_p1
+input_moves() |> solve_p1 |> println
 
 # Part 2: no step on snek
 using Base.Cartesian: @nexprs
@@ -66,4 +66,4 @@ function solve_p2(moves, ::Val{N}) where {N}
     end
     length(visited)
 end
-input_moves() |> solve_p2
+input_moves() |> solve_p2 |> println
