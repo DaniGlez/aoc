@@ -34,7 +34,6 @@ function solve_p1(moves)
     rhead = starting_point
     rtail = starting_point
     visited = Set((starting_point,))
-    println(visited)
     for (dir, n) ∈ moves
         for _ ∈ 1:n
             rhead += dir
@@ -61,8 +60,7 @@ solve_p2(moves) = solve_p2(moves, Val(10))
 function solve_p2(moves, ::Val{N}) where {N}
     starting_point = SA[0, 0]
     snek = MVector{N}([starting_point for _ ∈ 1:N])
-    visited = Set{SVector{2,Int64}}()
-    push!(visited, starting_point)
+    visited = Set((starting_point,))
     for (dir, n) ∈ moves
         for _ ∈ 1:n
             move_snek!(snek, dir)
