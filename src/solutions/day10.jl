@@ -1,4 +1,4 @@
-using Pipe, Accessors, StaticArrays, DataStructures
+using Accessors
 
 # structs
 abstract type Op end
@@ -22,13 +22,6 @@ checkpoint_and_yield(c::CPUState) = c.cycle ∈ 20:40:220 ? (c.cycle * c.X) : 0
 
 # input
 pline(line) = startswith(line, "addx") ? AddX(parse(Int64, line[6:end])) : NoOp()
-function input_ops()
-    q = Queue{Union{NoOp,AddX}}()
-    for line ∈ eachline("src/inputs/day10.txt")
-        enqueue!(q, pline(line))
-    end
-    q
-end
 
 # part 1&2
 function process!(c::CPUState, crt, op::Op)
@@ -36,7 +29,7 @@ function process!(c::CPUState, crt, op::Op)
         y = (c.cycle - 1) ÷ 40
         x = (c.cycle - 1) % 40
         sprite = (c.X-1):(c.X+1)
-        if (x ∈ sprite)
+        if x ∈ sprite
             crt[y+1, x+1] = '#'
         end
         c = @set c.accumulator += checkpoint_and_yield(c)
@@ -48,8 +41,9 @@ end
 function solve(ops)
     cpu = CPUState()
     crt = fill('.', (6, 40))
-    while !isempty(ops)
-        cpu = process!(cpu, crt, dequeue!(ops))
+    for line ∈ eachline("src/inputs/day10.txt")
+        op = pline(line)
+        cpu = process!(cpu, crt, op)
     end
     for row ∈ eachrow(crt)
         join(row) |> println
