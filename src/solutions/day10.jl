@@ -36,7 +36,9 @@ function process!(c::CPUState, crt, op::Op)
         y = (c.cycle - 1) ÷ 40
         x = (c.cycle - 1) % 40
         sprite = (c.X-1):(c.X+1)
-        (x ∈ sprite) ? (crt[y+1, x+1] = '#') : nothing
+        if (x ∈ sprite)
+            crt[y+1, x+1] = '#'
+        end
         c = @set c.accumulator += checkpoint_and_yield(c)
         c = @set c.cycle += 1
     end
@@ -49,8 +51,8 @@ function solve(ops)
     while !isempty(ops)
         cpu = process!(cpu, crt, dequeue!(ops))
     end
-    for i ∈ 1:6
-        println(join(crt[i, :]))
+    for row ∈ eachrow(crt)
+        join(row) |> println
     end
     cpu.accumulator
 end
