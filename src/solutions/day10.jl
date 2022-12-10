@@ -38,10 +38,10 @@ function process!(c::CPUState, crt, op::Op)
     apply(c, op)
 end
 
-function solve(ops)
+function solve(fpath)
     cpu = CPUState()
     crt = fill('.', (6, 40))
-    for line ∈ eachline("src/inputs/day10.txt")
+    for line ∈ eachline(fpath)
         op = pline(line)
         cpu = process!(cpu, crt, op)
     end
@@ -51,4 +51,4 @@ function solve(ops)
     cpu.accumulator
 end
 
-input_ops() |> solve |> println
+solve("src/inputs/day10.txt") |> println
