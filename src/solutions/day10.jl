@@ -11,9 +11,8 @@ struct CPUState
     cycle::Int64
     X::Int64
     accumulator::Int64
-    pixel::Int64
 end
-CPUState() = CPUState(1, 1, 0, 0)
+CPUState() = CPUState(1, 1, 0)
 
 n_cycles(::NoOp) = 1
 n_cycles(::AddX) = 2
@@ -40,7 +39,6 @@ function process!(c::CPUState, crt, op::Op)
         (x ∈ sprite) ? (crt[y+1, x+1] = '#') : nothing
         c = @set c.accumulator += checkpoint_and_yield(c)
         c = @set c.cycle += 1
-        c = @set c.pixel = (c.pixel + 1) % 3
     end
     apply(c, op)
 end
