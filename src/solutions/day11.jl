@@ -1,5 +1,8 @@
 using DataStructures, Pipe
 
+abstract type Worry end
+struct LowWorry <: Worry end
+struct HighWorry <: Worry end
 abstract type Op end
 struct Square <: Op end
 struct Add <: Op
@@ -51,40 +54,43 @@ function init_monkeys(fpath="src/inputs/day11.txt"; T=Int64)
     @pipe split(readchomp(fpath), "Monkey ")[2:end] .|> Monkey(_, T)
 end
 
-function turn!(monkey::Monkey{O,T}; high_worry=false) where {O,T}
-    output = Queue{Tuple{Int64,T}}()
+modworry(::LowWorry, worry_level) = worry_level ÷ 3
+modworry(::HighWorry, worry_level) = worry_level
+function turn!(monkey::Monkey{O,T}, output, worry) where {O,T}
     while !isempty(monkey.items)
         item = dequeue!(monkey.items)
         new_worry = monkey.op(item)
-        new_worry = high_worry ? new_worry : (new_worry ÷ 3)
+        new_worry = modworry(worry, new_worry)
         destinations = (monkey.pass_if_false, monkey.pass_if_true)
         pass_to = destinations[Int(new_worry % monkey.test == 0)+1]
         enqueue!(output, (pass_to, new_worry))
     end
-    output
+    nothing
 end
 
-function round!(monkeys, inspections; high_worry=false)
+function round!(monkeys, inspections, to_deliver, worry)
     for (i, monkey) ∈ enumerate(monkeys)
-        to_deliver = turn!(monkey; high_worry=high_worry)
+        turn!(monkey, to_deliver, worry)
         inspections[i] += length(to_deliver)
-        for (j, item) ∈ to_deliver
+        while !isempty(to_deliver)
+            j, item = dequeue!(to_deliver)
             enqueue!(monkeys[j+1].items, item)
         end
     end
 end
 
-function solve(T, n_rounds=20; high_worry=false)
+function solve(T, worry, n_rounds=20)
     monkeys = init_monkeys(; T=T)
     inspections = zeros(Int64, length(monkeys))
+    to_deliver = Queue{Tuple{Int64,T}}()
     for _ ∈ 1:n_rounds
-        round!(monkeys, inspections; high_worry=high_worry)
+        round!(monkeys, inspections, to_deliver, worry)
     end
     sort!(inspections)
     inspections[end-1] * inspections[end]
 end
 
-solve_p1() = solve(Int64, 20; high_worry=false)
+solve_p1() = solve(Int64, LowWorry(), 20)
 solve_p1() |> println
 
 # Part 2
@@ -112,8 +118,9 @@ function solve_p2()
     D = divisors(monkeys)
     N = length(D)
     MND = ModuloNumber{N,D}
-    solve(MND, 10000; high_worry=true)
+    solve(MND, HighWorry(), 10_000)
 end
 
 solve_p2() |> println
+
 
