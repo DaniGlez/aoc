@@ -51,11 +51,11 @@ function solve_p1()
     search(A, start, neighbours_fwd, x -> (x == finish), x -> l∞(x - finish))
 end
 
-solve_p1()
+solve_p1() |> println
 
 # part 2: BFS
 function solve_p2()
     A, _, finish = inputs()
     search(A, finish, neighbours_bwd, x -> (A[x] == 0), x -> 0)
 end
-solve_p2()
+solve_p2() |> println
