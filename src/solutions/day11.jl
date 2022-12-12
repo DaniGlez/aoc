@@ -122,5 +122,36 @@ function solve_p2()
 end
 
 solve_p2() |> println
+function find_cycle_length(monkeys, number, in_monkey)
+    D = divisors(monkeys)
+    P = prod(D)
+    visited_on = zeros(Int64, P, 8)
+    visited_on[number, in_monkey] = 1
+    i = 1
+    j = in_monkey
+    n = number
+    while true
+        i += 1
+        monkey = monkeys[j]
+        n = monkey.op(n)
+        n = n % P
+        destinations = (monkey.pass_if_false, monkey.pass_if_true)
+        j = destinations[Int(n % monkey.test == 0)+1] + 1
+        if visited_on[n, j] != 0
+            return i - visited_on[n, j]
+            break
+        end
+        visited_on[n, j] = i
+    end
+end
 
-
+monkeys = init_monkeys()
+s = Set{Int64}()
+n_items = 0
+for i ∈ 1:8
+    monkey = monkeys[i]
+    for item ∈ monkey.items
+        n_items += 1
+        push!(s, find_cycle_length(monkeys, item, i))
+    end
+end
