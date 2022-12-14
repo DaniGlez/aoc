@@ -35,37 +35,33 @@ function parse_input(fpath="src/inputs/day14.txt")
     A
 end
 
-function move_sand!(A, current, Δ)
-    A[current] = EMPTY
-    A[current+Δ] = SAND
-    current + Δ
-end
-
-function add_sand!(A, sand_drop, stopping::Stopping)
+# returns (retcode, final sand grain position)
+function add_sand(A, sand_drop, stopping::Stopping)
     n, m = size(A)
-    (A[sand_drop] == EMPTY) || return true
-    A[sand_drop] = SAND
+    (A[sand_drop] == EMPTY) || return (true, cur_pos)
     cur_pos = sand_drop
     while true
-        (stopping == p1) && (cur_pos.I[1] == n) && return true
+        (stopping == p1) && (cur_pos.I[1] == n) && return (true, cur_pos)
         moved = false
         for dir ∈ (down, down_left, down_right)
             move = cur_pos + dir
             if checkbounds(Bool, A, move) && (A[move] == EMPTY)
-                cur_pos = move_sand!(A, cur_pos, dir)
+                cur_pos = move
                 moved = true
                 break
             end
         end
-        moved || return false
+        moved || return (false, cur_pos)
     end
 end
 
-function solve(A, stopping::Stopping)
+function solve!(A, stopping::Stopping)
     pos_rock = CI(1, 500)
     i = 0
     while true
-        add_sand!(A, pos_rock, stopping) && return i
+        retcode, sand_pos = add_sand(A, pos_rock, stopping)
+        A[sand_pos] = SAND
+        retcode && return i
         i += 1
     end
 end
