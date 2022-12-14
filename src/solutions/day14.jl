@@ -85,3 +85,37 @@ function plot(A, offset=490)
         println(row[offset:end] .|> status2char |> join)
     end
 end
+
+
+
+# -------
+using BenchmarkTools, DataStructures
+@benchmark parse_input()
+@benchmark solve_p1(parse_input())
+@benchmark solve_p2(parse_input())
+
+A = parse_input()
+
+function solve_p2_dfs(A_)
+    initial_grain = CI(1, 500)
+    A = copy(A_)
+    grains = Stack{CartesianIndex{2}}()
+    occupied = 0
+    push!(grains, initial_grain)
+    while !isempty(grains)
+        current = pop!(grains)
+        occupied += 1
+        A[current] = SAND
+        for move ∈ (down, down_left, down_right)
+            candidate = current + move
+            if checkbounds(Bool, A, candidate) && (A[candidate] == EMPTY)
+                push!(grains, candidate)
+            end
+        end
+    end
+    occupied
+end
+
+solve_p2_dfs(A)
+@benchmark solve_p2_dfs(A)
+
