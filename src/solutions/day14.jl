@@ -38,8 +38,8 @@ end
 # returns (retcode, final sand grain position)
 function add_sand(A, sand_drop, stopping::Stopping)
     n, m = size(A)
-    (A[sand_drop] == EMPTY) || return (true, cur_pos)
     cur_pos = sand_drop
+    (A[sand_drop] == EMPTY) || return (true, cur_pos)
     while true
         (stopping == p1) && (cur_pos.I[1] == n) && return (true, cur_pos)
         moved = false
@@ -66,8 +66,8 @@ function solve!(A, stopping::Stopping)
     end
 end
 
-solve_p1(A) = solve(A, p1)
-solve_p2(A) = solve(A, p2)
+solve_p1(A) = solve!(A, p1)
+solve_p2(A) = solve!(A, p2)
 parse_input() |> solve_p1
 parse_input() |> solve_p2
 
