@@ -94,7 +94,7 @@ using BenchmarkTools, DataStructures
 @benchmark solve_p1(parse_input())
 @benchmark solve_p2(parse_input())
 
-A = parse_input()
+
 
 function solve_p2_dfs(A_)
     initial_grain = CI(1, 500)
@@ -116,6 +116,31 @@ function solve_p2_dfs(A_)
     occupied
 end
 
-solve_p2_dfs(A)
+A = parse_input()
+solve_p2_dfs(A) |> println
 @benchmark solve_p2_dfs(A)
 
+function solve_p2_bfs(A_)
+    initial_grain = CI(1, 500)
+    A = copy(A_)
+    grains = Queue{CartesianIndex{2}}()
+    occupied = 0
+    enqueue!(grains, initial_grain)
+    while !isempty(grains)
+        current = dequeue!(grains)
+        # With BFS we gotta check AFTER retrieving
+        if checkbounds(Bool, A, current) && (A[current] == EMPTY)
+            occupied += 1
+            A[current] = SAND
+            for move ∈ (down, down_left, down_right)
+                candidate = current + move
+                enqueue!(grains, candidate)
+            end
+        end
+
+    end
+    occupied
+end
+
+solve_p2_bfs(A)
+@benchmark solve_p2_bfs(A)
