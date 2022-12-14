@@ -55,7 +55,8 @@ function add_sand(A, sand_drop, stopping::Stopping)
     end
 end
 
-function solve!(A, stopping::Stopping)
+function solve!(A_, stopping::Stopping)
+    A = copy(A_)
     pos_rock = CI(1, 500)
     i = 0
     while true
@@ -93,8 +94,6 @@ using BenchmarkTools, DataStructures
 @benchmark parse_input()
 @benchmark solve_p1(parse_input())
 @benchmark solve_p2(parse_input())
-
-
 
 function solve_p2_dfs(A_)
     initial_grain = CI(1, 500)
@@ -144,3 +143,29 @@ end
 
 solve_p2_bfs(A)
 @benchmark solve_p2_bfs(A)
+
+# ------- fastest one -------
+function solve_p2_vec(mask)
+    n, m = size(mask)
+    v = zeros(Bool, m)
+    u = zeros(Bool, m)
+    v[500] = true
+    total_grains = 1
+    wₗ, wₕ = 499, 501
+    for i ∈ 1:(n-1)
+        i₁ = i + 1
+        mask_row = @view mask[i₁, :]
+        for j ∈ wₗ:wₕ
+            u[j] = (v[j-1] | v[j] | v[j+1]) & mask_row[j]
+        end
+        u[wₗ] && (wₗ -= 1)
+        u[wₕ] && (wₕ += 1)
+        total_grains += sum(u)
+        u, v = v, u
+    end
+    total_grains
+end
+
+mask = Array{Bool}(parse_input() .+ 1)
+solve_p2_vec(mask)
+@benchmark solve_p2_vec($mask)
