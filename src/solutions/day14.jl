@@ -87,13 +87,12 @@ function plot(A, offset=490)
     end
 end
 
-
-
 # -------
 using BenchmarkTools, DataStructures
 @benchmark parse_input()
-@benchmark solve_p1(parse_input())
-@benchmark solve_p2(parse_input())
+A = parse_input()
+@benchmark solve_p1($A)
+@benchmark solve_p2($A)
 
 function solve_p2_dfs(A_)
     initial_grain = CI(1, 500)
