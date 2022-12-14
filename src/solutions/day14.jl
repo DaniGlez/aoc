@@ -13,7 +13,6 @@ function str2ci(s)
     CI(b + 1, a)
 end
 
-clamp2unit(x) = clamp(x, -1, 1)
 function good_range(a, b)
     if (b.I[1] < a.I[1]) || (b.I[2] < a.I[2])
         return b:a
