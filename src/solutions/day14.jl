@@ -157,10 +157,10 @@ function solve_p2_vec(mask)
         mask_row = @view mask[i₁, :]
         for j ∈ wₗ:wₕ
             u[j] = (v[j-1] | v[j] | v[j+1]) & mask_row[j]
+            total_grains += u[j]
         end
         u[wₗ] && (wₗ -= 1)
         u[wₕ] && (wₕ += 1)
-        total_grains += sum(u)
         u, v = v, u
     end
     total_grains
@@ -168,4 +168,4 @@ end
 
 mask = Array{Bool}(parse_input() .+ 1)
 solve_p2_vec(mask)
-@benchmark solve_p2_vec($mask)
+@benchmark solve_p2_vec(mask)
