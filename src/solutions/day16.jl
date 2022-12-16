@@ -91,3 +91,52 @@ end
 vv = parse_input()
 solve_p1(vv)
 # Reading the solution from the solver output at this stage
+
+function solve_p2(valves, n_periods, n_agents)
+    model = Model(HiGHS.Optimizer)
+    vcodes = keys(valves)
+    periods = 1:n_periods
+    agents = 1:n_agents
+    @variable(model, O[vcodes, periods, agents], Bin)
+    @variable(model, M[vcodes, periods, agents], Bin)
+    for k ∈ vcodes # no opening more than once
+        @constraint(model, sum(O[k, :, :]) <= 1)
+    end
+    for a ∈ agents
+        for p ∈ periods # just one action per period
+            @constraint(model, sum(O[:, p, a]) + sum(M[:, p, a]) <= 1)
+        end
+        # only open V if you have moved to V in the previous period
+        for (p1, p2) ∈ zip(1:(n_periods-1), 2:n_periods)
+            for (c, v) ∈ valves
+                @constraint(model, O[c, p2, a] <= M[c, p1, a])
+            end
+        end
+        # only arrive to valve from valid valves
+        for (p1, p2) ∈ zip(1:(n_periods-1), 2:n_periods)
+            for (c, v) ∈ valves
+                @constraint(model, M[c, p2, a] <= sum(M[pc, p1, a] + O[pc, p1, a]
+                                                      for pc ∈ previous_valves(valves, c)))
+            end
+        end
+        # Initial conditions
+        AA = vname("AA")
+        @constraint(model, sum(M[c, 1, a] for c ∈ valves[AA].next_valves) == 1)
+    end
+    # Opening values
+    OV = Dict{VCode,SVector{n_periods,Int64}}()
+    factor = SVector{n_periods}(n_periods-1:-1:0)
+    for (c, v) ∈ valves
+        push!(OV, c => factor .* v.flow_rate)
+    end
+    @objective(model, Max, sum(sum(OV[c]'O[c, :, a] for c ∈ keys(valves))
+                               for a ∈ agents))
+    optimize!(model)
+    solution_summary(model), model
+end
+
+valves_example = parse_input("src/inputs/day16ex.txt")
+valves = parse_input()
+solve_p2(valves, 30, 1)
+solve_p2(valves, 26, 2)
+
