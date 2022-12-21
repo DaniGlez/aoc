@@ -1,4 +1,4 @@
-using Pipe, ValSplit
+using Pipe
 
 parse_input(fpath="src/inputs/day20.txt") = @pipe readlines(fpath) .|> parse(Int16, _)
 example_input = Int16[1, 2, -3, 3, -2, 0, 4]
