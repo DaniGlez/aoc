@@ -9,49 +9,12 @@ const left = CI₂(0, -1)
 const stay = CI₂(0, 0)
 const dirs = (up, down, right, left, stay)
 
-abstract type HDir end
-abstract type VDir end
-struct East <: HDir end
-struct West <: HDir end
-struct North <: VDir end
-struct South <: VDir end
-
-struct HStorm{D<:HDir}
-    x0::Int64
-end
-
-struct VStorm{D<:VDir}
-    y0::Int64
-end
-
-sign(::HStorm{D}) where {D} = sign(D())
-sign(::VStorm{D}) where {D} = sign(D())
-sign(::North) = -1
-sign(::South) = 1
-sign(::East) = 1
-sign(::West) = -1
-
+pline(line) = collect(line)[2:end-2]
 function parse_input(fpath="src/inputs/day24.txt")
-    hstorms = Vector{Vector{HStorm}}()
-    vstorms = Vector{Vector{VStorm}}()
-    for (j, line) ∈ enumerate(eachline(fpath))
-        if startswith(line, "#.#")
-            for _ ∈ 1:(length(line)-2)
-                push!(vstorms, Vector{VStorm}())
-            end
-            continue
-        end
-        if (line[2] == '#')
-            return hstorms, vstorms, CI₂(0, 1), CI₂(j - 1, -1 + findfirst(c -> c == '.', line))
-        end
-        push!(hstorms, Vector{HStorm}())
-        for (i, c) ∈ enumerate(line)
-            (c == 'v') && push!(vstorms[i-1], VStorm{South}(j - 1))
-            (c == '^') && push!(vstorms[i-1], VStorm{North}(j - 1))
-            (c == '<') && push!(hstorms[j-1], HStorm{West}(i - 1))
-            (c == '>') && push!(hstorms[j-1], HStorm{East}(i - 1))
-        end
-    end
+    cmatrix = hcat((readlines("src/inputs/day24.txt") .|> collect)...) |> permutedims
+    x_dest = findfirst(c -> c == '.', cmatrix[end, 2:end])
+    y_dest = size(cmatrix)[1] - 1
+    cmatrix, CI₂(y_dest, x_dest)
 end
 
 parse_input()
@@ -74,24 +37,23 @@ function next_moves(x::SpaceTimePosition, storm_check::F) where {F}
     filter(!storm_check, candidates)
 end
 
-function build_storm_checker(hstorms, vstorms, unblocked_nodes)
-    h = length(hstorms)
-    w = length(vstorms)
-    function storm_check(x::SpaceTimePosition) # false = clear, true = blocked/unavailable
-        x.ci ∈ unblocked_nodes && return false
-        y_pos(x) < 1 && return true
-        x_pos(x) < 1 && return true
-        x_pos(x) > w && return true
-        y_pos(x) > h && return true
-        for hs ∈ hstorms[y_pos(x)]
-            # TODO: invert calculation to move the current pos instead of the storm
-            storm_x = mod1(hs.x0 + sign(hs) * x.t, w)
-            storm_x == x_pos(x) && return true
-        end
-        for vs ∈ vstorms[x_pos(x)]
-            storm_y = mod1(vs.y0 + sign(vs) * x.t, h)
-            storm_y == y_pos(x) && return true
-        end
+function build_storm_checker(cmatrix, unblocked_nodes)
+    h, w = size(cmatrix) .- 2
+    A = @view cmatrix[2:end-1, 2:end-1]
+    function storm_check(st::SpaceTimePosition) # false = clear, true = blocked/unavailable
+        st.ci ∈ unblocked_nodes && return false
+        x = x_pos(st)
+        y = y_pos(st)
+        x ∉ 1:w && return true
+        y ∉ 1:h && return true
+        x_west = mod1(x + st.t, w)
+        A[y, x_west] == '<' && return true
+        x_east = mod1(x - st.t, w)
+        A[y, x_east] == '>' && return true
+        y_north = mod1(y + st.t, h)
+        A[y_north, x] == '^' && return true
+        y_south = mod1(y - st.t, h)
+        A[y_south, x] == 'v' && return true
         false
     end
     storm_check
@@ -122,18 +84,19 @@ function minimum_time_path(storm_check, xt_orig, dest)
     tmax
 end
 
-function solve_p1(hstorms, vstorms, orig, dest)
-    storm_check = build_storm_checker(hstorms, vstorms, (orig, dest))
+function solve_p1(cmatrix, dest)
+    orig = CI₂(0, 1)
+    storm_check = build_storm_checker(cmatrix, (orig, dest))
     xt0 = SpaceTimePosition(orig, 0)
     minimum_time_path(storm_check, xt0, dest)
 end
 
 @pipe parse_input() |> solve_p1(_...)
 
-function solve_p2(hstorms, vstorms, orig, dest)
-    storm_check = build_storm_checker(hstorms, vstorms, (orig, dest))
-    t0 = 0
-    t1 = minimum_time_path(storm_check, SpaceTimePosition(orig, t0), dest)
+function solve_p2(cmatrix, dest)
+    orig = CI₂(0, 1)
+    storm_check = build_storm_checker(cmatrix, (orig, dest))
+    t1 = minimum_time_path(storm_check, SpaceTimePosition(orig, 0), dest)
     t2 = minimum_time_path(storm_check, SpaceTimePosition(dest, t1), orig)
     minimum_time_path(storm_check, SpaceTimePosition(orig, t2), dest)
 end
