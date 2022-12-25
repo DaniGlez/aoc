@@ -9,15 +9,12 @@ const left = CI₂(0, -1)
 const stay = CI₂(0, 0)
 const dirs = (up, down, right, left, stay)
 
-pline(line) = collect(line)[2:end-2]
 function parse_input(fpath="src/inputs/day24.txt")
-    cmatrix = hcat((readlines("src/inputs/day24.txt") .|> collect)...) |> permutedims
+    cmatrix = hcat((readlines(fpath) .|> collect)...) |> permutedims
     x_dest = findfirst(c -> c == '.', cmatrix[end, 2:end])
     y_dest = size(cmatrix)[1] - 1
     cmatrix, CI₂(y_dest, x_dest)
 end
-
-parse_input()
 
 struct SpaceTimePosition
     ci::CI₂
@@ -29,8 +26,8 @@ x_pos(x::SpaceTimePosition) = x.ci.I[2]
 y_pos(x::SpaceTimePosition) = x.ci.I[1]
 
 using DataStructures
-l∞(ci::CI₂) = abs(ci.I[1]) + abs(ci.I[2])
-ttg_min(ci, goal) = l∞(goal - ci)
+l₁(ci::CI₂) = abs(ci.I[1]) + abs(ci.I[2])
+ttg_min(ci, goal) = l₁(goal - ci)
 
 function next_moves(x::SpaceTimePosition, storm_check::F) where {F}
     candidates = @pipe dirs .|> SpaceTimePosition(x.ci + _, x.t + 1)
@@ -66,7 +63,6 @@ function minimum_time_path(storm_check, xt_orig, dest)
     tmax = -1
     while !isempty(frontier)
         current = dequeue!(frontier)
-        #println("$tmax $(length(reachable)) $(length(frontier)) $(current.t)")
         (tmax != -1) && (ttg_min(current.ci, dest) + current.t >= tmax) && continue
         for s ∈ next_moves(current, storm_check)
             (tmax != -1) && (ttg_min(s.ci, dest) + s.t >= tmax) && continue
