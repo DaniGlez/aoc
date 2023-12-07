@@ -59,10 +59,7 @@ end
 
 # ------ Part 2 ------
 
-const FIXED_CARDS = "23456789TQKA"
-
 function jokerify(h::Hand)
-    @show h
     c = Tuple(
             unique(h.cards) |> filter(c -> c != 'J') .|> c -> count(==(c), h.cards)
         ) |> sort |> reverse
