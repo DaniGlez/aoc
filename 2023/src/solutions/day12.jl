@@ -45,7 +45,8 @@ function find_combinations_no_undamaged(springs, group_sizes)
         return binomial(length(springs) - sum(group_sizes) + 1, length(group_sizes))
     end
     total_ways = 0
-    idx = findfirst('#', springs)
+    idxs = findall('#', springs)
+    idx = argmin(idx -> (idx - (length(springs) >> 1))^2, idxs)
     s1 = springs[1:idx]
     s2 = springs[idx:end]
     for i ∈ eachindex(group_sizes)
