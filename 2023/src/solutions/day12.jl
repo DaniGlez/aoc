@@ -45,6 +45,7 @@ function find_combinations_no_undamaged(springs, group_sizes)
         return binomial(length(springs) - sum(group_sizes) + 1, length(group_sizes))
     end
     total_ways = 0
+    # Using findfirst instead of the ~halving heuristic leads to getting rekt by 2-3 inputs
     idxs = findall('#', springs)
     idx = argmin(idx -> (idx - (length(springs) >> 1))^2, idxs)
     s1 = springs[1:idx]
