@@ -10,15 +10,12 @@ const left = CI(0, -1)
 const right = CI(0, 1)
 const directions = (up, right, down, left)
 
-direction(i::Number) = directions[mod1(i, 4)]
-direction(ci3::CI3) = direction(ci3.I[3])
-
 struct Beam
     pos::CI
     dir::CI
 end
 
-Beam(ci::CI3) = Beam(ci2(ci), direction(ci))
+Beam(ci::CI3) = Beam(ci2(ci), directions[ci3.I[3]])
 Beam(i::Number, j::Number, dir::CI) = Beam(CI(i, j), dir)
 CI3(b::Beam) = ci3(b.pos, findfirst(==(b.dir), directions))
 
@@ -47,11 +44,11 @@ function next(beam, c)
 end
 
 
-function propagate_beam(M)
+function propagate_beam(M, init=Beam(1, 1, right))
     (h, w) = size(M)
     energized = BitArray(undef, (h, w, 4))
     energized .= false
-    queue = [Beam(1, 1, right)]
+    queue = [init]
     while !isempty(queue)
         beam = pop!(queue)
         ijd = CI3(beam)
@@ -69,3 +66,16 @@ end
 
 fetch_map(path="2023/inputs/input16.txt") = stack(split(read(path, String), "\n") .|> collect, dims=1)
 fetch_map() |> propagate_beam |> println
+
+# ------ Part 2 ------
+
+function solve_p2(M)
+    (h, w) = size(M)
+    m1 = maximum(i -> propagate_beam(M, Beam(i, 1, right)), 1:h)
+    m2 = maximum(i -> propagate_beam(M, Beam(i, w, left)), 1:h)
+    m3 = maximum(i -> propagate_beam(M, Beam(1, i, down)), 1:w)
+    m4 = maximum(i -> propagate_beam(M, Beam(h, i, up)), 1:w)
+    max(m1, m2, m3, m4)
+end
+
+fetch_map() |> solve_p2 |> println
