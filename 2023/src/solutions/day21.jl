@@ -50,8 +50,6 @@ function solve_p2(M0; total_steps=26_501_365)
 
     steps_white_tile = count_n(M0; steps=h * w)
     steps_black_tile = count_n(M0; steps=h * w + 1)
-    @show steps_white_tile
-    @show steps_black_tile
 
     # The "spoke" is the segment of fully reached cells in each cardinal direction
     # from the origin block, not including it
@@ -63,39 +61,28 @@ function solve_p2(M0; total_steps=26_501_365)
     full_white = 4 * ((spoke_length + 1) ÷ 2)^2
     isodd(total_steps) && ((full_black, full_white) = (full_white, full_black))
     total_cells = full_black * steps_black_tile + full_white * steps_white_tile
-    @show total_cells
 
     # spoke tips
     # remaining steps at spoke
     rem_steps = total_steps - spoke_length * h - midpoint
-    @show rem_steps
-    @show spoke_length
-    @show full_black
-    @show full_white
 
     # spoke tips
     top, bot, left, right = CI(1, midpoint), CI(h, midpoint), CI(midpoint, 1), CI(midpoint, w)
     for entry_point ∈ (top, bot, left, right)
-        @show count_n(M; entry_point=entry_point, steps=rem_steps)
         total_cells += count_n(M; entry_point=entry_point, steps=rem_steps)
-        @show total_cells
     end
 
     # remaining cells at inner corners
     rem_steps_inner = rem_steps + midpoint - 1
     rem_steps_outer = rem_steps_inner - h
-    @show rem_steps_inner
-    @show rem_steps_outer
     for entry_point ∈ (CI(1, 1), CI(1, w), CI(h, 1), CI(h, w))
         # Inner diagonal blocks
         inner_cells = count_n(M; entry_point=entry_point, steps=rem_steps_inner)
-        @show inner_cells
         total_cells += spoke_length * inner_cells
 
+        # Outer diagonal blocks
         rem_steps_outer >= 0 || continue
         outer_cells = count_n(M; entry_point=entry_point, steps=rem_steps_outer)
-        @show outer_cells
-        # Outer diagonal blocks
         total_cells += (spoke_length + 1) * outer_cells
     end
     total_cells
