@@ -49,14 +49,6 @@ function solve_p1(blocks)
     sum(idx -> disintegrable(A, idx), 1:n_plus_1-1)
 end
 
-function verify_settled(settled)
-    for (i, a) ∈ enumerate(settled)
-        for (j, b) ∈ enumerate(settled[1:i-1])
-            isempty(a ∩ b) || error("$i $j $a $b")
-        end
-    end
-end
-
 eachline("2023/inputs/input22.txt") .|> parse_line |> solve_p1
 
 # ------ Part 2 ------
