@@ -6,7 +6,6 @@ function parse_line(line)
 end
 
 drop(block) = block .+ CI(0, 0, -1)
-lift(block) = block .+ CI(0, 0, 1)
 hit_the_floor(block) = minimum(block.indices[3]) <= 0
 
 function settle(blocks::Vector{B}) where {B}
