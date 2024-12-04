@@ -1,6 +1,7 @@
 const CI2 = CartesianIndex{2}
 
-M = reduce(vcat, permutedims.(collect.(readlines("2024/inputs/day04.txt"))))
+M = permutedims(reduce(hcat, (collect.(readlines("2024/inputs/day04.txt")))))
+
 const XMAS = ('X', 'M', 'A', 'S')
 const all_directions = [
     CI2(1, 0), CI2(0, 1), CI2(-1, 0), CI2(0, -1),
@@ -10,8 +11,10 @@ const all_directions = [
 function solve_part_1(M)
     sum(all_directions) do direction
         count(CartesianIndices(M)) do s0
-            idx = s0 .+ direction .* (0:3)
-            all(i -> i ∈ CartesianIndices(M), idx) && all(XMAS .== M[idx])
+            idx = s0 .+ direction .* (0, 1, 2, 3)
+            all(i -> i ∈ CartesianIndices(M), idx) && all(1:4) do i
+                M[idx[i]] == XMAS[i]
+            end
         end
     end
 end
