@@ -43,7 +43,6 @@ end
 
 function p1(rules, updates)
     sum(updates) do update
-        @show update, is_well_sorted(rules, update)
         is_well_sorted(rules, update) ? middle(update) : 0
     end
 end
