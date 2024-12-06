@@ -1,7 +1,7 @@
 const CI = CartesianIndex
 const CIs = CartesianIndices
 
-M = permutedims(reduce(hcat, (collect.(readlines("2024/inputs/day06.txt")))))
+M = permutedims(stack(collect.(readlines("2024/inputs/day06.txt"))))
 
 const rotate_right = Dict(CI(-1, 0) => CI(0, 1),
     CI(0, 1) => CI(1, 0),
