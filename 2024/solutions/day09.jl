@@ -132,3 +132,91 @@ function checksum2(fs)
 end
 
 process_line2(line) |> defragment2 |> checksum2
+
+
+line = readlines("2024/inputs/day09.txt") |> only |> collect |> x -> parse.(Int, x)
+
+using Accessors
+
+struct Block
+    size::Int64
+    space_after::Int64
+end
+
+function process_filesystem(line)
+    blocks = Block[]
+    sizehint!(blocks, length(line) ÷ 2 + 1)
+    prev = Dict{Int64,Int64}()
+    next = Dict{Int64,Int64}()
+    for i ∈ 1:2:length(line)
+        idx = i ÷ 2 + 1
+        empty_space = (i + 1) ∈ eachindex(line) ? line[i+1] : 0
+        b = Block(line[i], empty_space)
+        push!(blocks, b)
+        i == 1 && continue
+        prev[idx] = idx - 1
+        next[idx-1] = idx
+    end
+    next[length(blocks)] = length(blocks) + 1
+    blocks, next, prev
+end
+
+(blocks, next, prev) = process_filesystem(line);
+
+function find_slot(blocks, next, l, r)
+    b = l
+    necessary_size = blocks[r].size
+    while true
+        b == r && return b
+        blocks[b].space_after >= necessary_size && return b
+        b = next[b]
+    end
+end
+
+function defragment2(inputs)
+    (blocks, d_next, d_prev) = inputs
+    r = length(blocks)
+    l = 1
+    while true
+        r <= l && break
+        if blocks[l].space_after == 0
+            l += 1
+            continue
+        end
+        b_swap = find_slot(blocks, d_next, l, r)
+        b_swap == r && continue
+        # here comes the swap
+        available_space = blocks[b_swap].space_after
+        block_prev = blocks[d_prev[r]]
+        blocks[d_prev[r]] = @set block_prev.space_after =
+            blocks[d_prev[r]].space_after + blocks[r].size + blocks[r].space_after
+        block_r = blocks[r]
+        blocks[r] = @set block_r.space_after = available_space - blocks[r].space_after
+        block_swapped = blocks[b_swap]
+        blocks[b_swap] = @set block_swapped.space_after = 0
+        d_prev[r], d_prev[d_next[r]], d_prev[d_next[b_swap]],
+        d_next[r], d_next[d_prev[r]], d_next[b_swap] =
+            b_swap, d_prev[r], r, d_next[b_swap], d_next[r], r
+        # next
+        r -= 1
+    end
+    blocks, d_next
+end
+
+function checksum2(inputs)
+    (blocks, d_next) = inputs
+    acc = 0
+    i = 0
+    b = blocks |> first
+    while b ∈ keys(d_next)
+        for j ∈ 1:b.size
+            acc += i * (b - 1)
+            i += 1
+        end
+        i += b.space_after
+        b = d_next[b]
+    end
+    acc
+end
+
+process_filesystem(line) |> defragment2 |> checksum2
