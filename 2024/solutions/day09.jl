@@ -173,47 +173,80 @@ function find_slot(blocks, next, l, r)
     end
 end
 
+function plot_blocks(blocks, next)
+    plot_block(blocks, next, 1)
+    println("")
+end
+
+function plot_block(blocks, next, b)
+    for _ ∈ 1:blocks[b].size
+        print("$(b-1)")
+    end
+    for _ ∈ 1:blocks[b].space_after
+        print(".")
+    end
+    next[b] > length(blocks) && return nothing
+    plot_block(blocks, next, next[b])
+end
+
 function defragment2(inputs)
     (blocks, d_next, d_prev) = inputs
     r = length(blocks)
     l = 1
     while true
-        r <= l && break
+        @show l, r
+        # plot_blocks(blocks, d_next)
+        (r < 1 || l == r) && break
         if blocks[l].space_after == 0
-            l += 1
+            l = d_next[l]
             continue
         end
         b_swap = find_slot(blocks, d_next, l, r)
-        b_swap == r && continue
+        b_swap == r && @goto continue_to_next_block
+        d_next[b_swap] == r && @goto fuck_this_edge_case_in_particular
         # here comes the swap
         available_space = blocks[b_swap].space_after
         block_prev = blocks[d_prev[r]]
         blocks[d_prev[r]] = @set block_prev.space_after =
             blocks[d_prev[r]].space_after + blocks[r].size + blocks[r].space_after
         block_r = blocks[r]
-        blocks[r] = @set block_r.space_after = available_space - blocks[r].space_after
+        blocks[r] = @set block_r.space_after = available_space - blocks[r].size
         block_swapped = blocks[b_swap]
         blocks[b_swap] = @set block_swapped.space_after = 0
-        d_prev[r], d_prev[d_next[r]], d_prev[d_next[b_swap]],
-        d_next[r], d_next[d_prev[r]], d_next[b_swap] =
+        cur_next_of_r = d_next[r]
+        cur_next_of_b_swap = d_next[b_swap]
+        cur_prev_of_r = d_prev[r]
+        d_prev[r], d_prev[cur_next_of_r], d_prev[cur_next_of_b_swap],
+        d_next[r], d_next[cur_prev_of_r], d_next[b_swap] =
             b_swap, d_prev[r], r, d_next[b_swap], d_next[r], r
-        # next
+        @goto continue_to_next_block
+
+        @label fuck_this_edge_case_in_particular
+        block_prev, block_r = blocks[b_swap], blocks[r]
+        total_space = block_prev.space_after + block_r.space_after
+        blocks[b_swap] = @set block_prev.space_after = 0
+        blocks[r] = @set block_prev.space_after = total_space
+
+        @label continue_to_next_block
         r -= 1
     end
     blocks, d_next
 end
 
+
 function checksum2(inputs)
     (blocks, d_next) = inputs
     acc = 0
     i = 0
-    b = blocks |> first
+    b = 1
     while b ∈ keys(d_next)
-        for j ∈ 1:b.size
+        @show b
+        block = blocks[b]
+        for j ∈ 1:block.size
             acc += i * (b - 1)
             i += 1
         end
-        i += b.space_after
+        i += block.space_after
         b = d_next[b]
     end
     acc
