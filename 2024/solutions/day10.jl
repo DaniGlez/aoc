@@ -27,9 +27,9 @@ function add_reachable!(M, reachable, xy, z)
             0
         elseif z == 9
             push!(reachable, next)
-            return 1
+            1
         else
-            return add_reachable!(M, reachable, next, z + 1)
+            add_reachable!(M, reachable, next, z + 1)
         end
     end
 end
