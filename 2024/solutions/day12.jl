@@ -43,21 +43,18 @@ function solve(M, part)
     for x ∈ CIs(M)
         visited[x] == true && continue
         visited[x] = true
-        new_area = true
         for area ∈ areas
             c, s = area
             M[x] == c && any(Δ -> x + Δ ∈ s, steps) && begin
                     push!(s, x)
-                    new_area = false
-                    break
+                    @goto no_new_area
                 end
         end
-        if new_area
-            na = Set{CI{2}}()
-            push!(na, x)
-            push!(areas, (M[x], na))
-            expand_area!(M, visited, areas[end])
-        end
+        new_area = Set{CI{2}}()
+        push!(new_area, x)
+        push!(areas, (M[x], new_area))
+        expand_area!(M, visited, areas[end])
+        @label no_new_area
     end
     sum(areas) do (_, points)
         perimeter(points, part) * length(points)
@@ -73,17 +70,12 @@ function perimeter(area, ::Val{2})
     end
     for pos ∈ area
         for facing ∈ facings
-            next = pos + facing
-            if next ∉ area
-                new_edge = true
-                for edge ∈ edges[facing]
-                    if pos ∈ edge
-                        new_edge = false
-                        break
-                    end
-                end
-                new_edge && add_edge!(area, edges, pos, facing)
+            pos + facing ∉ area || continue
+            for edge ∈ edges[facing]
+                pos ∈ edge && @goto no_new_edge
             end
+            add_edge!(area, edges, pos, facing)
+            @label no_new_edge
         end
     end
     sum(length, values(edges))
