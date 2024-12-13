@@ -50,3 +50,12 @@ begin
     sum(min_tokens, data) |> println
     sum(min_tokens_2, data) |> println
 end
+
+# Sad I didn't get the chance to do iterative refinement :(
+# Should have know that Eric would not have added an accuracy-related problem 
+# that could be solved by increasing the precision of the inputs to e.g. Float128
+# function refine_sol(AB, y, x)
+#     Δy = y - AB * x
+#     Δx = AB \ Δy
+#     x + Δx
+# end
