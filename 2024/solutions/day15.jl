@@ -1,12 +1,13 @@
 const CI = CartesianIndex
 const CIs = CartesianIndices
 
-const char2dir = Dict('^' => CI(-1, 0), 'v' => CI(1, 0), '<' => CI(0, -1), '>' => CI(0, 1))
+const char2dir = Dict('^' => CI(-1, 0), 'v' => CI(1, 0), '<' => CI(0, -1), '>' => CI(0, 1),
+    '\n' => missing)
 
 function parse_input(filename="2024/inputs/day15.txt")
-    chunks = split(read(filename, String), "\n\n")
-    M = permutedims(stack(collect.(split.(chunks[1], '\n'))))
-    moves = collect(Iterators.flatten([(c -> char2dir[c]).(collect(ch)) for ch in split(chunks[2], '\n')]))
+    cmap, cmoves = split(read(filename, String), "\n\n")
+    M = permutedims(stack(collect.(split.(cmap, '\n'))))
+    moves = collect(skipmissing([char2dir[c] for c ∈ cmoves]))
     M, moves
 end
 
@@ -25,6 +26,8 @@ widen(M) = permutedims(stack(
     end
 ))
 
+is_vertical(m::CI{2}) = (m.I[2] == 0)
+
 function solve(M, moves)
     robot = findfirst(==('@'), M)
     for m ∈ moves
@@ -33,15 +36,16 @@ function solve(M, moves)
         while !isempty(candidates)
             pos = popfirst!(candidates)
             push!(positions_to_shift, pos)
+
             next = pos + m
             if M[next] == '#'
-                @goto next_move
+                @goto skip_move
             elseif M[next] == '.'
                 continue
             end
-
+            # next now contains a box
             next ∈ candidates || push!(candidates, next)
-            if abs(m.I[1]) == 1 && M[next] ∈ ('[', ']')
+            if is_vertical(m) && M[next] ∈ ('[', ']')
                 side = next + box_side(M[next])
                 side ∈ candidates || push!(candidates, side)
             end
@@ -51,7 +55,7 @@ function solve(M, moves)
             M[pos], M[pos+m] = M[pos+m], M[pos]
         end
         robot += m
-        @label next_move
+        @label skip_move
     end
     sum(CIs(M)) do ci
         gps = (ci.I[1] - 1, ci.I[2] - 1)
