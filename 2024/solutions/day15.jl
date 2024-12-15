@@ -28,33 +28,27 @@ widen(M) = permutedims(stack(
 function solve(M, moves)
     robot = findfirst(==('@'), M)
     for m ∈ moves
-        positions_to_shift = [[robot]]
-        while true
-            next_positions = CI{2}[]
-            for pos ∈ last(positions_to_shift)
-                next = pos + m
-                if M[next] == '#'
-                    @goto next_move
-                elseif M[next] == '.'
-                    continue
-                end
-                next ∈ next_positions || push!(next_positions, next)
-                if abs(m.I[1]) == 1 && M[next] ∈ ('[', ']')
-                    side = next + box_side(M[next])
-
-                    side ∈ next_positions || push!(next_positions, side)
-                end
-
+        positions_to_shift = CI{2}[]
+        candidates = [robot]
+        while !isempty(candidates)
+            pos = popfirst!(candidates)
+            push!(positions_to_shift, pos)
+            next = pos + m
+            if M[next] == '#'
+                @goto next_move
+            elseif M[next] == '.'
+                continue
             end
-            isempty(next_positions) && @goto apply_move
-            push!(positions_to_shift, next_positions)
+
+            next ∈ candidates || push!(candidates, next)
+            if abs(m.I[1]) == 1 && M[next] ∈ ('[', ']')
+                side = next + box_side(M[next])
+                side ∈ candidates || push!(candidates, side)
+            end
         end
-        @label apply_move
         while !isempty(positions_to_shift)
-            next_positions = pop!(positions_to_shift)
-            for pos ∈ next_positions
-                M[pos], M[pos+m] = M[pos+m], M[pos]
-            end
+            pos = pop!(positions_to_shift)
+            M[pos], M[pos+m] = M[pos+m], M[pos]
         end
         robot += m
         @label next_move
@@ -63,7 +57,6 @@ function solve(M, moves)
         gps = (ci.I[1] - 1, ci.I[2] - 1)
         M[ci] ∈ ('[', 'O') ? (100gps[1] + gps[2]) : 0
     end
-
 end
 
 
