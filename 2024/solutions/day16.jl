@@ -74,6 +74,7 @@ function move_forward!(M, score, frontier, ci, dir_move)
     end
 end
 
+# TODO: avoid expanding nodes on suboptimal paths (i.e. check the fwd+bwd == score online)
 function solve_p2(M)
     origin = CI(findfirst(==('E'), M).I..., 1)
     destination = findfirst(==('S'), M)
