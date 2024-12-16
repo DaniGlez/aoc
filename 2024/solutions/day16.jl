@@ -3,6 +3,9 @@ const CIs = CartesianIndices
 
 const ENWS = (CI(0, 1), CI(-1, 0), CI(0, -1), CI(1, 0))
 
+ci2_to_ci3(ci2::CI{2}, i) = CI(ci2.I[1], ci2.I[2], mod1(i, 4))
+ci3_to_ci2(ci3::CI{3}) = CI(ci3.I[1], ci3.I[2])
+
 # Poor-man's priority queue
 function dequeue!(d::Dict)
     v = minimum(values(d))
@@ -19,85 +22,65 @@ function enqueue!(d::Dict, kv)
     d[k] = v
 end
 
-function solve_p1(M)
-    E, S = ('E', 'S')
-    origin = CI(findfirst(==(E), M).I..., 1)
-    destination = findfirst(==(S), M)
-    E_i, E_j = destination.I
-    destinations = [CI(E_i, E_j, i) for i in 1:4]
-    _, min_score = solve(M, (origin,), destinations)
-    min_score
-end
-
 function solve(M, origins, destinations, dir_move=1)
     score = ones(Int64, (size(M)..., 4)) * typemax(Int64)
     frontier = Dict{CI{3},Int64}()
-    foreach(origins) do ci
-        score[ci] = 0
-        enqueue!(frontier, ci => 0)
+    foreach(origins) do ijk
+        score[ijk] = 0
+        enqueue!(frontier, ijk => 0)
     end
     while !isempty(frontier)
-        ci = dequeue!(frontier)
-        if score[ci] > minimum(d -> score[d], destinations)
+        ijk = dequeue!(frontier)
+        if score[ijk] > minimum(d -> score[d], destinations)
             continue
         end
-        turn_right!(M, score, frontier, ci)
-        turn_left!(M, score, frontier, ci)
-        move_forward!(M, score, frontier, ci, dir_move)
+        turn_right!(M, score, frontier, ijk)
+        turn_left!(M, score, frontier, ijk)
+        move_forward!(M, score, frontier, ijk, dir_move)
     end
     score, minimum(d -> score[d], destinations)
 end
 
-turn_right!(M, score, frontier, ci) = turn!(M, score, frontier, ci, 1)
-turn_left!(M, score, frontier, ci) = turn!(M, score, frontier, ci, -1)
-function turn!(M, score, frontier, ci, δ)
-    d_idx = ci.I[3]
-    new_ci = CI(ci.I[1:2]..., mod1(d_idx + δ, 4))
-    new_t = score[ci] + 1000
-    if new_t < score[new_ci]
-        score[new_ci] = new_t
-        enqueue!(frontier, new_ci => new_t)
+function add_node!(score, frontier, ijk, t)
+    if t < score[ijk]
+        score[ijk] = t
+        enqueue!(frontier, ijk => t)
     end
 end
 
-function move_forward!(M, score, frontier, ci, dir_move)
-    d_idx = ci.I[3]
-    t = score[ci]
-    new_t = t + 1
-    new_ci = ci + dir_move * CI(ENWS[d_idx].I..., 0)
-    if M[CI(new_ci.I[1:2]...)] == '#'
-        return nothing
-    end
-    if new_t < score[new_ci]
-        score[new_ci] = new_t
-        enqueue!(frontier, new_ci => new_t)
+turn_right!(_, score, frontier, ijk) = turn!(score, frontier, ijk, 1)
+turn_left!(_, score, frontier, ijk) = turn!(score, frontier, ijk, -1)
+function turn!(score, frontier, ijk, δ)
+    new_ci = ci2_to_ci3(ci3_to_ci2(ijk), ijk.I[3] + δ)
+    add_node!(score, frontier, new_ci, score[ijk] + 1000)
+end
+
+function move_forward!(M, score, frontier, ijk, dir_move)
+    d_idx = ijk.I[3]
+    t = score[ijk]
+    next = ijk + dir_move * CI(ENWS[d_idx].I..., 0)
+    if M[ci3_to_ci2(next)] != '#'
+        add_node!(score, frontier, next, t + 1)
     end
 end
 
 # TODO: avoid expanding nodes on suboptimal paths (i.e. check the fwd+bwd == score online)
-function solve_p2(M)
-    origin = CI(findfirst(==('E'), M).I..., 1)
-    destination = findfirst(==('S'), M)
-    E_i, E_j = destination.I
-    destinations = [CI(E_i, E_j, i) for i in 1:4]
-    score_fwd, min_score = solve(M, (origin,), destinations)
-    destinations_opt = [CI(E_i, E_j, i) for i in 1:4 if score_fwd[E_i, E_j, i] == min_score]
-    score_bwd, min_score_bwd = solve(M, destinations_opt, (origin,), -1)
-    @assert min_score == min_score_bwd
-    count(CIs(M)) do ci
-        if M[ci] == '#'
-            false
-        else
-            any(1:4) do i
-                ci3 = CI(ci.I..., i)
-                score_fwd[ci3] + score_bwd[ci3] == min_score
-            end
-        end
-    end
-end
-
 begin
     M = stack(collect.(readlines("2024/inputs/day16.txt")))
-    solve_p1(M) |> println
-    solve_p2(M) |> println
+    E_i, E_j = findfirst(==('S'), M).I
+    origin = ci2_to_ci3(findfirst(==('E'), M), 1)
+    destinations = [CI(E_i, E_j, i) for i in 1:4]
+    score_fwd, min_score = solve(M, (origin,), destinations)
+    destinations_opt = filter(ijk -> score_fwd[ijk] == min_score, destinations)
+    score_bwd, min_score_bwd = solve(M, destinations_opt, (origin,), -1)
+    @assert min_score == min_score_bwd
+    (
+        min_score,
+        count(CIs(M)) do ij
+            M[ij] != '#' && any(1:4) do k
+                ijk = ci2_to_ci3(ij, k)
+                score_fwd[ijk] + score_bwd[ijk] == min_score
+            end
+        end
+    )
 end
