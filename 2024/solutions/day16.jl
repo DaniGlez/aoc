@@ -66,9 +66,9 @@ end
 
 # TODO: avoid expanding nodes on suboptimal paths (i.e. check the fwd+bwd == score online)
 begin
-    M = stack(collect.(readlines("2024/inputs/day16.txt")))
-    E_i, E_j = findfirst(==('S'), M).I
-    origin = ci2_to_ci3(findfirst(==('E'), M), 1)
+    M = permutedims(stack(collect.(readlines("2024/inputs/day16.txt"))))
+    E_i, E_j = findfirst(==('E'), M).I
+    origin = ci2_to_ci3(findfirst(==('S'), M), 1)
     destinations = [CI(E_i, E_j, i) for i in 1:4]
     score_fwd, min_score = solve(M, (origin,), destinations)
     destinations_opt = filter(ijk -> score_fwd[ijk] == min_score, destinations)
