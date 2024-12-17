@@ -87,10 +87,6 @@ begin
 end
 
 # Part 2 ===============================
-# 1 tribit = 3 bits
-
-tribits2int(tribits) = foldl((n, d) -> (n << 3 + d), tribits; init=Int64(0))
-tribit_count(n) = n ∈ 0 ? 0 : 1 + tribit_count(n >> 3)
 
 function remove_corruption(program)
     @assert program[end-1:end] == [3, 0]
