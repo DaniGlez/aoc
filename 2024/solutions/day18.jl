@@ -38,7 +38,6 @@ function solve(byte_list)
     destination = CI(71, 71)
     distance[origin] = 0
     enqueue!(frontier, origin => 0)
-
     while !isempty(frontier)
         ij = dequeue!(frontier)
         if distance[ij] > distance[destination]
@@ -59,10 +58,24 @@ end
 
 solve(@view parse_input()[1:1024]) |> println
 
-function part_2(byte_list)
-    idx = findfirst(eachindex(byte_list)) do i
-        solve(@view byte_list[1:i]) == typemax(Int64)
+# Part 2 ====================================
+# searchsortedlast does not work with maps :(
+
+function binsearch(f, lo, hi)
+    while hi - lo > 1
+        mid = (lo + hi) ÷ 2
+        if f(mid) > 0
+            hi = mid
+        else
+            lo = mid + 1
+        end
     end
+    hi
+end
+
+function part_2(byte_list)
+    reachable_boundary(n) = solve(@view byte_list[1:n]) + 1 - typemax(Int64)
+    idx = binsearch(reachable_boundary, 1, length(byte_list))
     join(byte_list[idx], ',')
 end
 
