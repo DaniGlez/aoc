@@ -2,6 +2,7 @@
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
 Chairmarks = "0ca39b1e-fe0b-4e98-acfc-b1656634c4de"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+Memoize = "c03570c3-d221-55d1-a50c-7939bbd78826"
 Pipe = "b98c9c47-44ae-5843-9183-064241ee97a0"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
