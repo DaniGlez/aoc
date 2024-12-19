@@ -36,3 +36,35 @@ begin
         count_designs(patterns, design)
     end |> println
 end
+
+# Bonus - no @memoize, low allocations
+
+function count_designs_alt(patterns, design)
+    length(design) == 0 && return 1
+    length(design) == 1 && return design ∈ patterns
+    midpoint = length(design) ÷ 2
+    before = @view design[1:midpoint]
+    after = @view design[midpoint+1:end]
+    c = count_designs_alt(patterns, before) *
+        count_designs_alt(patterns, after)
+    @views for pattern ∈ patterns
+        l = length(pattern)
+        l == 1 && continue
+        for n_before ∈ 1:(l-1)
+            n_after = l - n_before
+            p_before, p_after = pattern[1:n_before], pattern[n_before+1:end]
+            if endswith(before, p_before) && startswith(after, p_after)
+                c += count_designs_alt(patterns, before[1:end-n_before]) *
+                     count_designs_alt(patterns, after[n_after+1:end])
+            end
+        end
+    end
+    c
+end
+
+begin
+    patterns, designs = parse_input()
+    @b sum(designs) do design
+        count_designs_alt(patterns, design)
+    end |> println
+end
