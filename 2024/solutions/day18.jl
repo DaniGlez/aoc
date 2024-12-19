@@ -80,3 +80,61 @@ function part_2(byte_list)
 end
 
 part_2(parse_input()) |> println
+
+# Part 2 alt ================================
+# slower :(((
+
+is_neighbour(a::CI{2}, b::CI{2}) = all(abs.(a.I .- b.I) .<= 1)
+
+in_ws_side(ij::CI{2}) = ij[1] == 70 || ij[2] == 0
+in_en_side(ij::CI{2}) = ij[1] == 0 || ij[2] == 70
+
+mutable struct Cluster
+    touches_ws::Bool
+    touches_en::Bool
+    obstacles::Set{CI{2}}
+end
+
+merge_clusters(a::Cluster, b::Cluster) = Cluster(
+    a.touches_ws || b.touches_ws,
+    a.touches_en || b.touches_en,
+    a.obstacles ∪ b.obstacles
+)
+
+function add_obstacle!(cluster::Cluster, ij::CI{2})
+    any(obs -> is_neighbour(obs, ij), cluster.obstacles) || return false
+    push!(cluster.obstacles, ij)
+    cluster.touches_ws |= in_ws_side(ij)
+    cluster.touches_en |= in_en_side(ij)
+    true
+end
+
+blocks_path(cluster::Cluster) = cluster.touches_ws && cluster.touches_en
+
+function solve_alt(byte_list)
+    clusters = Cluster[]
+    for (i, j) ∈ byte_list
+        ij = CI(i, j)
+        idxs = filter(eachindex(clusters)) do cluster_idx
+            add_obstacle!(clusters[cluster_idx], ij)
+        end
+        if isempty(idxs)
+            push!(clusters, Cluster(in_ws_side(ij), in_en_side(ij), Set([ij])))
+        elseif length(idxs) > 1
+            while length(idxs) > 1
+                idx_del = pop!(idxs)
+                cl_del = splice!(clusters, idx_del)
+                clusters[last(idxs)] = merge_clusters(
+                    clusters[last(idxs)], cl_del
+                )
+            end
+        end
+        any(blocks_path, clusters) && return ij
+    end
+end
+
+printsol(ij::CI{2}) = join(ij.I, ',') |> println
+
+parse_input() |> solve_alt |> printsol
+
+@benchmark solve_alt(bl)
