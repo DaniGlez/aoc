@@ -81,60 +81,63 @@ end
 
 part_2(parse_input()) |> println
 
-# Part 2 alt ================================
-# slower :(((
+# 10x faster alternative for Part 2 =================================
 
-is_neighbour(a::CI{2}, b::CI{2}) = all(abs.(a.I .- b.I) .<= 1)
+in_ws_side(ij::CI{2}) = ij[1] == 71 || ij[2] == 1
+in_en_side(ij::CI{2}) = ij[1] == 1 || ij[2] == 71
 
-in_ws_side(ij::CI{2}) = ij[1] == 70 || ij[2] == 0
-in_en_side(ij::CI{2}) = ij[1] == 0 || ij[2] == 70
+@enum CellStatus Empty Obstacle ObsWS ObsEN
 
-mutable struct Cluster
-    touches_ws::Bool
-    touches_en::Bool
-    obstacles::Set{CI{2}}
-end
+const dirs8 = (CI(0, 1), CI(1, 0), CI(0, -1), CI(-1, 0), CI(1, 1), CI(-1, -1), CI(1, -1), CI(-1, 1))
 
-merge_clusters(a::Cluster, b::Cluster) = Cluster(
-    a.touches_ws || b.touches_ws,
-    a.touches_en || b.touches_en,
-    a.obstacles ∪ b.obstacles
-)
-
-function add_obstacle!(cluster::Cluster, ij::CI{2})
-    any(obs -> is_neighbour(obs, ij), cluster.obstacles) || return false
-    push!(cluster.obstacles, ij)
-    cluster.touches_ws |= in_ws_side(ij)
-    cluster.touches_en |= in_en_side(ij)
-    true
-end
-
-blocks_path(cluster::Cluster) = cluster.touches_ws && cluster.touches_en
-
-function solve_alt(byte_list)
-    clusters = Cluster[]
-    for (i, j) ∈ byte_list
-        ij = CI(i, j)
-        idxs = filter(eachindex(clusters)) do cluster_idx
-            add_obstacle!(clusters[cluster_idx], ij)
-        end
-        if isempty(idxs)
-            push!(clusters, Cluster(in_ws_side(ij), in_en_side(ij), Set([ij])))
-        elseif length(idxs) > 1
-            while length(idxs) > 1
-                idx_del = pop!(idxs)
-                cl_del = splice!(clusters, idx_del)
-                clusters[last(idxs)] = merge_clusters(
-                    clusters[last(idxs)], cl_del
-                )
-            end
-        end
-        any(blocks_path, clusters) && return ij
+function add_byte!(M, ij)
+    M[ij] = if in_ws_side(ij)
+        ObsWS
+    elseif in_en_side(ij)
+        ObsEN
+    else
+        Obstacle
     end
+    for dir in dirs8
+        new_ij = ij + dir
+        new_ij in CIs(M) || continue
+        if M[new_ij] ∈ (ObsWS, ObsEN)
+            M[ij] = M[new_ij]
+            propagate!(M, ij) && return true
+        end
+    end
+    false
 end
 
-printsol(ij::CI{2}) = join(ij.I, ',') |> println
+function propagate!(M, ij)
+    value = M[ij]
+    for dir in dirs8
+        new_ij = ij + dir
+        new_ij in CIs(M) || continue
+        if M[new_ij] == Obstacle
+            M[new_ij] = value
+            propagate!(M, new_ij) && return true
+        elseif M[new_ij] ∉ (Empty, value) # ie it's ObsWS or ObsEN, whichever is not value
+            return true
+        end
+    end
+    false
+end
 
-parse_input() |> solve_alt |> printsol
 
-@benchmark solve_alt(bl)
+function solve_2(byte_list)
+    grid = Matrix{CellStatus}(undef, (71, 71))
+    grid .= Empty
+    for (x, y) in byte_list
+        ij = CI(x + 1, y + 1)
+        add_byte!(grid, ij) && return (x, y)
+    end
+    @show grid
+end
+
+parse_input() |> solve_2
+
+using BenchmarkTools
+
+bl = parse_input()
+@benchmark solve_2(bl)
