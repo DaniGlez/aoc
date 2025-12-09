@@ -65,9 +65,6 @@ begin
                 w = abs(c[1] - d[1]) + 1
                 h = abs(c[2] - d[2]) + 1
                 area = max(area, w * h)
-                if area == w * h
-                    @show i, j, area
-                end
             end
         end
     end
